@@ -15,6 +15,16 @@ const init = async () => {
       message: "What would you like to do?",
       choices: [
         {
+          short: "Departments",
+          value: "viewAllDepartments",
+          name: "View All Departments",
+        },
+        {
+          short: "Roles",
+          value: "viewAllRoles",
+          name: "View All Roles",
+        },
+        {
           short: "Employees",
           value: "viewAllEmployees",
           name: "View All Employees",
@@ -51,11 +61,7 @@ const init = async () => {
           value: "updateEmployeeManager",
           name: "Update Employee Manager",
         },
-        {
-          short: "Roles",
-          value: "viewAllRoles",
-          name: "View All Roles",
-        },
+
         {
           value: "addRole",
           name: "Add Role",
@@ -64,11 +70,7 @@ const init = async () => {
           value: "removeRole",
           name: "Remove Role",
         },
-        {
-          short: "Departments",
-          value: "viewAllDepartments",
-          name: "View All Departments",
-        },
+
         {
           value: "addDepartment",
           name: "Add Departments",
@@ -96,8 +98,53 @@ const init = async () => {
     } else {
       if (answers.action === "viewAllDepartments") {
         const query = "SELECT * FROM department";
-        const data = await db.query(query);
-        console.table(data);
+        const departments = await db.query(query);
+        console.table(departments);
+      }
+
+      if (answers.action === "viewAllRoles") {
+        const query = "SELECT * FROM role";
+        const roles = await db.query(query);
+        console.table(roles);
+      }
+
+      if (answers.action === "viewAllEmployees") {
+        const query = `SELECT employee_role.first_name, employee_role.last_name, title, salary, name, employee_manager.first_name, employee_manager.last_name
+        FROM employee employee_role 
+        LEFT JOIN role 
+        ON employee_role.role_id=role.id 
+        LEFT JOIN department
+        ON role.department_id=department.id
+        LEFT JOIN employee employee_manager
+        ON employee_role.manager_id=employee_manager.id`;
+        const employees = await db.query(query);
+        console.table(employees);
+      }
+
+      if (answers.action === "viewAllEmployeesByDepartment") {
+        const departmentQuery = "SELECT * FROM department";
+        const departments = await db.query(departmentQuery);
+
+        const callback = (department) => {
+          return {
+            value: department.id,
+            name: department.name,
+          };
+        };
+        const choices = departments.map(callback);
+
+        const question = {
+          name: "departmentId",
+          type: "list",
+          message: "Select the department:",
+          choices,
+        };
+        const { departmentId } = await inquirer.prompt(question);
+
+        const query = `SELECT first_name, last_name, title, salary, name FROM employee LEFT JOIN role ON employee.role_id=role.id LEFT JOIN department ON role.department_id=department.id WHERE role.department_id=${departmentId}`;
+
+        const employees = await db.query(query);
+        console.table(employees);
       }
     }
   }
