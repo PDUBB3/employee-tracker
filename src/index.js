@@ -217,6 +217,102 @@ const init = async () => {
           },
         ]);
       }
+
+      if (answers.action === "viewAllEmployeesByRole") {
+        const roleQuery = "SELECT * FROM role";
+        const roles = await db.query(roleQuery);
+
+        const callback = (role) => {
+          return {
+            value: role.id,
+            name: role.title,
+          };
+        };
+        const roleChoices = roles.map(callback);
+
+        const roleQuestions = {
+          name: "roleId",
+          type: "list",
+          choices: roleChoices,
+          message: "What is the role you would like to view?",
+        };
+
+        const answers = await inquirer.prompt(roleQuestions);
+
+        const employeeQuery = `SELECT * FROM employee WHERE role_id = ${answers.roleId} `;
+        const employeeByrole = await db.query(employeeQuery);
+        console.table(employeeByrole);
+      }
+
+      if (answers.action === "updateEmployeeRole") {
+        const employeeQuery = `SELECT * FROM employee`;
+        const allEmployees = await db.query(employeeQuery);
+
+        const callback = (employee) => {
+          return {
+            value: employee.id,
+            name: `${employee.first_name} ${employee.last_name}`,
+          };
+        };
+        const employeeChoices = allEmployees.map(callback);
+
+        const roleQuery = "SELECT * FROM role";
+        const roles = await db.query(roleQuery);
+
+        const roleCallback = (role) => {
+          return {
+            value: role.id,
+            name: role.title,
+          };
+        };
+        const roleChoices = roles.map(roleCallback);
+
+        const updateQuestions = [
+          {
+            name: "employeeId",
+            type: "list",
+            choices: employeeChoices,
+            message: "Which employee would you like to update?",
+          },
+          {
+            name: "roleId",
+            type: "list",
+            choices: roleChoices,
+            message:
+              "What is the role you would like to update for this employee?",
+          },
+        ];
+
+        const answers = await inquirer.prompt(updateQuestions);
+        const updateQuery = `UPDATE employee SET role_id = ${answers.roleId} WHERE id = ${answers.employeeId}`;
+        const updatedEmployee = await db.query(updateQuery);
+        console.log("employee updated successfully");
+      }
+
+      if (answers.action === "removeDepartment") {
+        const departmentQuery = "SELECT * FROM department";
+        const departments = await db.query(departmentQuery);
+
+        const callback = (department) => {
+          return {
+            value: department.id,
+            name: department.name,
+          };
+        };
+        const choices = departments.map(callback);
+
+        const question = {
+          name: "departmentId",
+          type: "list",
+          message: "Select the department:",
+          choices,
+        };
+        const { departmentId } = await inquirer.prompt(question);
+
+        const removeQuery = `DELETE FROM department WHERE id = ${departmentId} `;
+        const updatedDepartment = await db.query(removeQuery);
+        console.log("department deleted successfully");
+      }
     }
   }
 };
