@@ -109,14 +109,11 @@ const init = async () => {
       }
 
       if (answers.action === "viewAllEmployees") {
-        const query = `SELECT employee_role.first_name, employee_role.last_name, title, salary, name, employee_manager.first_name, employee_manager.last_name
-        FROM employee employee_role 
-        LEFT JOIN role 
-        ON employee_role.role_id=role.id 
-        LEFT JOIN department
-        ON role.department_id=department.id
-        LEFT JOIN employee employee_manager
-        ON employee_role.manager_id=employee_manager.id`;
+        const query = `SELECT employee_role.first_name as "First Name", employee_role.last_name as "Last Name", name as "Department", title as "Role", salary as "Salary",  CONCAT (employee_manager.first_name, " ", employee_manager.last_name) as "Manager Name"
+        FROM employee employee_role
+        LEFT JOIN role ON employee_role.role_id = role.id
+        LEFT JOIN department ON role.department_id = department.id
+        LEFT JOIN employee employee_manager ON employee_role.manager_id = employee_manager.id`;
         const employees = await db.query(query);
         console.table(employees);
       }
@@ -146,8 +143,81 @@ const init = async () => {
         const employees = await db.query(query);
         console.table(employees);
       }
+
+      if (answers.action === "addEmployee") {
+        const roleQuery = "SELECT * FROM role";
+        const roles = await db.query(roleQuery);
+
+        const callback = (role) => {
+          return {
+            value: role.id,
+            name: role.title,
+          };
+        };
+        const choices = roles.map(callback);
+
+        const employeeQuery = "SELECT * FROM employee";
+        const employees = await db.query(employeeQuery);
+
+        const employeeCallback = (employee) => {
+          return {
+            value: employee.id,
+            name: `${employee.first_name} ${employee.last_name}`,
+          };
+        };
+        const employeeChoices = employees.map(employeeCallback);
+
+        const employeeQuestions = [
+          {
+            name: "first_name",
+            type: "input",
+            message:
+              "What is the first name of the employee you would like to add?",
+          },
+
+          {
+            name: "last_name",
+            type: "input",
+            message:
+              "What is the last name of the employee you would like to add?",
+          },
+          {
+            name: "role_id",
+            type: "list",
+            choices,
+            message: "What is the role of the employee you would like to add?",
+          },
+
+          {
+            name: "managerConfirm",
+            type: "confirm",
+            message: "Does the employee you want to add have a manager?",
+          },
+
+          {
+            name: "manager_id",
+            type: "list",
+            choices: employeeChoices,
+            message: "What is the name of the employee's manager?",
+            when: (answers) => {
+              return answers.managerConfirm;
+            },
+          },
+        ];
+        const { first_name, last_name, role_id, manager_id } =
+          await inquirer.prompt(employeeQuestions);
+
+        await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
+          "employee",
+          {
+            first_name,
+            last_name,
+            role_id,
+            manager_id,
+          },
+        ]);
+      }
     }
   }
 };
-
 init();
