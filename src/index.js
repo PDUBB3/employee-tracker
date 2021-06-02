@@ -313,6 +313,30 @@ const init = async () => {
         const updatedDepartment = await db.query(removeQuery);
         console.log("department deleted successfully");
       }
+
+      if (answers.action === "viewBudget") {
+        const departmentQuery = "SELECT * FROM department";
+        const departments = await db.query(departmentQuery);
+
+        const callback = (department) => {
+          return {
+            value: department.id,
+            name: department.name,
+          };
+        };
+        const choices = departments.map(callback);
+
+        const question = {
+          name: "departmentId",
+          type: "list",
+          message: "Select the department:",
+          choices,
+        };
+        const { departmentId } = await inquirer.prompt(question);
+        const budgetQuery = `SELECT SUM (salary) FROM role WHERE department_id = ${departmentId}`;
+        const budget = await db.query(budgetQuery);
+        console.log(`budget: ${budget[0]["SUM (salary)"]}`);
+      }
     }
   }
 };
