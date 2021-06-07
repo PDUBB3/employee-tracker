@@ -218,6 +218,52 @@ const init = async () => {
         ]);
       }
 
+      if (answers.action === "addRole") {
+        const departmentQuery = "SELECT * FROM department";
+        const departments = await db.query(departmentQuery);
+
+        const callback = (department) => {
+          return {
+            value: department.id,
+            name: department.name,
+          };
+        };
+        const roleQuery = "SELECT * FROM role";
+        const roles = await db.query(roleQuery);
+
+        const roleCallback = (role) => {
+          return {
+            value: `${role.salary}`,
+            name: `${role.title}`,
+          };
+        };
+        const roleChoices = roles.map(roleCallback);
+        const roleQuestions = [
+          {
+            name: "role",
+            type: "list",
+            choices: roleChoices,
+            message: "What is the title of the role you would like to add?",
+          },
+
+          {
+            name: "salary",
+            type: "input",
+            message: "What is the salary of the role you would like to add?",
+          },
+        ];
+
+        const { role, salary } = await inquirer.prompt(roleQuestions);
+
+        await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
+          "role",
+          {
+            role,
+            salary,
+          },
+        ]);
+      }
+
       if (answers.action === "viewAllEmployeesByRole") {
         const roleQuery = "SELECT * FROM role";
         const roles = await db.query(roleQuery);
