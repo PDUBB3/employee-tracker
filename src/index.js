@@ -228,38 +228,71 @@ const init = async () => {
             name: department.name,
           };
         };
-        const roleQuery = "SELECT * FROM role";
-        const roles = await db.query(roleQuery);
+        const choices = departments.map(callback);
 
-        const roleCallback = (role) => {
-          return {
-            value: `${role.salary}`,
-            name: `${role.title}`,
-          };
-        };
-        const roleChoices = roles.map(roleCallback);
         const roleQuestions = [
           {
-            name: "role",
+            name: "department_id",
             type: "list",
-            choices: roleChoices,
-            message: "What is the title of the role you would like to add?",
+            choices,
+            message:
+              "What is the department of the role you would like to add?",
+          },
+
+          {
+            name: "title",
+            type: "input",
+            message: "What is the role title you would like to add?",
           },
 
           {
             name: "salary",
-            type: "input",
+            type: "number",
             message: "What is the salary of the role you would like to add?",
           },
         ];
 
-        const { role, salary } = await inquirer.prompt(roleQuestions);
+        const { department_id, title, salary } = await inquirer.prompt(
+          roleQuestions
+        );
 
         await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
           "role",
           {
-            role,
+            department_id,
+            title,
             salary,
+          },
+        ]);
+      }
+
+      if (answers.action === "addDepartment") {
+        const departmentQuery = "SELECT * FROM department";
+        const departments = await db.query(departmentQuery);
+
+        const callback = (department) => {
+          return {
+            value: department.id,
+            name: department.name,
+          };
+        };
+        const choices = departments.map(callback);
+
+        const departmentQuestions = [
+          {
+            name: "department_name",
+            type: "list",
+            choices,
+            message: "What is the department you would like to add?",
+          },
+        ];
+        const { departmentId } = await inquirer.prompt(departmentQuestions);
+        console.log(department_name);
+
+        await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
+          "department",
+          {
+            department_name,
           },
         ]);
       }
