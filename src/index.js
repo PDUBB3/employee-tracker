@@ -280,21 +280,22 @@ const init = async () => {
 
         const departmentQuestions = [
           {
-            name: "department_name",
+            name: "departmentName",
             type: "list",
             choices,
             message: "What is the department you would like to add?",
           },
         ];
-        const { departmentId } = await inquirer.prompt(departmentQuestions);
-        console.log(department_name);
+        const { departmentName } = await inquirer.prompt(departmentQuestions);
+        console.log(departmentName);
 
         await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
           "department",
           {
-            department_name,
+            departmentName,
           },
         ]);
+        console.log(`${answer.departmentName} department added successfully`);
       }
 
       if (answers.action === "viewAllEmployeesByRole") {
