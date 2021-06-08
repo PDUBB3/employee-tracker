@@ -267,35 +267,17 @@ const init = async () => {
       }
 
       if (answers.action === "addDepartment") {
-        const departmentQuery = "SELECT * FROM department";
-        const departments = await db.query(departmentQuery);
-
-        const callback = (department) => {
-          return {
-            value: department.id,
-            name: department.name,
-          };
-        };
-        const choices = departments.map(callback);
-
         const departmentQuestions = [
           {
-            name: "departmentName",
-            type: "list",
-            choices,
+            name: "name",
+            type: "input",
             message: "What is the department you would like to add?",
           },
         ];
-        const { departmentName } = await inquirer.prompt(departmentQuestions);
-        console.log(departmentName);
+        const { name } = await inquirer.prompt(departmentQuestions);
 
-        await db.parameterisedQuery(`INSERT INTO ?? SET ?`, [
-          "department",
-          {
-            departmentName,
-          },
-        ]);
-        console.log(`${answer.departmentName} department added successfully`);
+        await db.query(`INSERT INTO department (name) VALUES ("${name}");`);
+        console.log("department added successfully");
       }
 
       if (answers.action === "viewAllEmployeesByRole") {
